@@ -6,6 +6,8 @@ import { ActivityPanel } from '@/components/ActivityPanel';
 import { DebugTools } from '@/components/DebugTools';
 import { VersionTable } from '@/components/VersionTable';
 import { Banner } from '@/components/Banner';
+import { SDKViewer } from '@/components/SDKViewer';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
 
 const Index = () => {
@@ -146,45 +148,59 @@ const Index = () => {
           </div>
         </div>
 
-        {/* Main Layout */}
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-6">
-          {/* Left Panel - Configuration */}
-          <div className="lg:col-span-1">
-            <ConfigPanel
-              config={config}
-              setConfig={setConfig}
-              onSaveConfig={handleSaveConfig}
-              onTestConnection={handleTestConnection}
-              connectionStatus={connectionStatus}
-            />
-          </div>
+        {/* Tabbed Interface */}
+        <Tabs defaultValue="playground" className="w-full">
+          <TabsList className="grid w-full grid-cols-2 mb-6">
+            <TabsTrigger value="playground">API Playground</TabsTrigger>
+            <TabsTrigger value="sdk">SDK Reference</TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="playground" className="space-y-6">
+            {/* Main Layout */}
+            <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-6">
+              {/* Left Panel - Configuration */}
+              <div className="lg:col-span-1">
+                <ConfigPanel
+                  config={config}
+                  setConfig={setConfig}
+                  onSaveConfig={handleSaveConfig}
+                  onTestConnection={handleTestConnection}
+                  connectionStatus={connectionStatus}
+                />
+              </div>
 
-          {/* Center Panel - Chat Session */}
-          <div className="lg:col-span-2 space-y-4">
-            <Banner />
-            <ChatSession
-              messages={messages}
-              connectionStatus={connectionStatus}
-              onSendMessage={handleSendMessage}
-              onClearChat={handleClearChat}
-              onSimulateCSR={handleSimulateCSR}
-              onEndSession={handleEndSession}
-            />
-          </div>
+              {/* Center Panel - Chat Session */}
+              <div className="lg:col-span-2 space-y-4">
+                <Banner />
+                <ChatSession
+                  messages={messages}
+                  connectionStatus={connectionStatus}
+                  onSendMessage={handleSendMessage}
+                  onClearChat={handleClearChat}
+                  onSimulateCSR={handleSimulateCSR}
+                  onEndSession={handleEndSession}
+                />
+              </div>
 
-          {/* Right Panel - Activity */}
-          <div className="lg:col-span-1">
-            <ActivityPanel logs={logs} />
-          </div>
-        </div>
+              {/* Right Panel - Activity */}
+              <div className="lg:col-span-1">
+                <ActivityPanel logs={logs} />
+              </div>
+            </div>
 
-        {/* Debug Tools */}
-        <div className="mb-6">
-          <DebugTools />
-        </div>
+            {/* Debug Tools */}
+            <div className="mb-6">
+              <DebugTools />
+            </div>
 
-        {/* Version Table */}
-        <VersionTable />
+            {/* Version Table */}
+            <VersionTable />
+          </TabsContent>
+
+          <TabsContent value="sdk" className="space-y-6">
+            <SDKViewer />
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   );
