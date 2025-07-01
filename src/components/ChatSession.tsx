@@ -120,43 +120,54 @@ export const ChatSession = ({
 
         <Separator />
 
-        {/* Input Area */}
+        {/* Input Area - Rearranged */}
         <div className="p-4 bg-white space-y-4">
-          {/* Message Type Selector */}
-          <Select value={messageType} onValueChange={setMessageType}>
-            <SelectTrigger className="w-full border-gray-300 focus:border-blue-500 focus:ring-blue-500">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="Text Message">Text Message</SelectItem>
-              <SelectItem value="Rich + Content Data">Rich + Content Data</SelectItem>
-              <SelectItem value="Menu Selection">Menu Selection (Postback)</SelectItem>
-              <SelectItem value="Typing Indicator">Typing Indicator</SelectItem>
-              <SelectItem value="End Session">End Session</SelectItem>
-            </SelectContent>
-          </Select>
+          {/* Main Message Input - Now at the top */}
+          <div className="space-y-2">
+            <label htmlFor="message-input" className="block text-sm font-medium text-gray-700">
+              Type your message
+            </label>
+            <div className="flex gap-2">
+              <Input
+                id="message-input"
+                value={messageText}
+                onChange={(e) => setMessageText(e.target.value)}
+                onKeyPress={handleKeyPress}
+                placeholder="Start typing your message here..."
+                className="flex-1 border-gray-300 focus:border-blue-500 focus:ring-blue-500 text-base h-12"
+              />
+              <Button 
+                onClick={handleSend}
+                disabled={!messageText.trim()}
+                className="bg-blue-600 hover:bg-blue-700 text-white px-6 h-12"
+              >
+                <Send className="w-4 h-4 mr-2" />
+                Send
+              </Button>
+            </div>
+          </div>
           
-          {/* Message Input */}
-          <div className="flex gap-2">
-            <Input
-              value={messageText}
-              onChange={(e) => setMessageText(e.target.value)}
-              onKeyPress={handleKeyPress}
-              placeholder="Type your message here..."
-              className="flex-1 border-gray-300 focus:border-blue-500 focus:ring-blue-500"
-            />
-            <Button 
-              onClick={handleSend}
-              disabled={!messageText.trim()}
-              className="bg-blue-600 hover:bg-blue-700 text-white px-6"
-            >
-              <Send className="w-4 h-4 mr-2" />
-              Send
-            </Button>
+          {/* Message Type Selector - Now below the input */}
+          <div className="space-y-2">
+            <label htmlFor="message-type" className="block text-sm font-medium text-gray-700">
+              Message type
+            </label>
+            <Select value={messageType} onValueChange={setMessageType}>
+              <SelectTrigger className="w-full border-gray-300 focus:border-blue-500 focus:ring-blue-500">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="Text Message">Text Message</SelectItem>
+                <SelectItem value="Rich + Content Data">Rich + Content Data</SelectItem>
+                <SelectItem value="Menu Selection">Menu Selection (Postback)</SelectItem>
+                <SelectItem value="Typing Indicator">Typing Indicator</SelectItem>
+                <SelectItem value="End Session">End Session</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
           {/* Action Buttons */}
-          <div className="grid grid-cols-3 gap-2">
+          <div className="grid grid-cols-3 gap-2 pt-2">
             <Button
               onClick={onSimulateCSR}
               variant="outline"
