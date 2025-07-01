@@ -129,12 +129,21 @@ const Index = () => {
       <div className="container mx-auto p-4 max-w-7xl">
         {/* Header */}
         <div className="mb-6">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            Client Channel API Playground
-          </h1>
-          <p className="text-gray-600">
-            Test and debug your client channel integrations in real-time
-          </p>
+          <div className="flex items-center gap-4 mb-4">
+            <img 
+              src="/lovable-uploads/bfc75f5d-b261-4e11-8b55-8116fa6b2e50.png" 
+              alt="Pega API" 
+              className="w-12 h-12"
+            />
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900">
+                Client Channel API Playground
+              </h1>
+              <p className="text-gray-600 mt-1">
+                Test and debug your client channel integrations in real-time
+              </p>
+            </div>
+          </div>
         </div>
 
         {/* Main Layout */}
@@ -182,4 +191,3 @@ const Index = () => {
 };
 
 export default Index;
-
