@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { ConfigPanel } from '@/components/ConfigPanel';
 import { ChatSession } from '@/components/ChatSession';
 import { ActivityPanel } from '@/components/ActivityPanel';
@@ -12,6 +12,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { Settings } from 'lucide-react';
+import dmsApi, { ActivityLog, DMSMessage } from '@/lib/api';
 
 const Index = () => {
   const [connectionStatus, setConnectionStatus] = useState<'connected' | 'disconnected' | 'connecting'>('disconnected');
@@ -21,73 +22,117 @@ const Index = () => {
     content: string;
     timestamp: Date;
   }>>([]);
-  const [logs, setLogs] = useState<Array<{
-    id: string;
-    type: 'sent' | 'received';
-    content: string;
-    timestamp: Date;
-  }>>([]);
+  const [logs, setLogs] = useState<ActivityLog[]>([]);
   const [config, setConfig] = useState({
-    customerId: '',
-    connectionId: '4ff965fe-aaff-4c33-a727-29e928833417',
-    jwtSecret: '••••••••••••••••••••••••••••',
-    clientWebhookUrl: 'https://clientchannelexamplev3.onrender.com',
-    digitalMessagingUrl: 'https://incoming.artemis-pega.digital/messaging'
+    customerId: 'test-customer-123',
+    channelId: '',
+    jwtSecret: '',
+    clientWebhookUrl: 'http://localhost:3001/dms',
+    digitalMessagingUrl: 'https://your-pega-instance.com/prweb/api/v1/channels/client'
   });
+  
+  const [debugData, setDebugData] = useState<any>({});
   const [showThemeCustomizer, setShowThemeCustomizer] = useState(false);
   const { toast } = useToast();
 
-  const handleSaveConfig = () => {
-    if (!config.customerId.trim()) {
-      toast({
-        title: "Validation Error",
-        description: "Customer ID is required",
-        variant: "destructive"
-      });
-      return;
-    }
+  // Set up WebSocket connection and event listeners
+  useEffect(() => {
+    dmsApi.connectWebSocket();
     
-    toast({
-      title: "Configuration Saved",
-      description: "Your settings have been updated successfully",
-    });
-  };
-
-  const handleTestConnection = () => {
-    setConnectionStatus('connecting');
-    setTimeout(() => {
-      setConnectionStatus('connected');
-      setMessages(prev => [...prev, {
-        id: Date.now().toString(),
-        type: 'system',
-        content: 'Connection test successful',
-        timestamp: new Date()
-      }]);
-      toast({
-        title: "Connection Successful",
-        description: "API endpoint is responding correctly",
-      });
-    }, 2000);
-  };
-
-  const handleSendMessage = (content: string, messageType: string) => {
-    const newMessage = {
-      id: Date.now().toString(),
-      type: 'user' as const,
-      content: `${messageType}: ${content}`,
-      timestamp: new Date()
+    // Listen for DMS messages
+    const handleMessage = (message: DMSMessage) => {
+      const chatMessage = {
+        id: message.id,
+        type: message.message_type === 'system' ? 'system' as const : 'csr' as const,
+        content: message.content,
+        timestamp: new Date(message.timestamp)
+      };
+      setMessages(prev => [...prev, chatMessage]);
     };
     
-    setMessages(prev => [...prev, newMessage]);
+    // Listen for activity logs
+    const handleActivity = (activity: ActivityLog) => {
+      setLogs(prev => [...prev, activity]);
+    };
     
-    // Add to logs
-    setLogs(prev => [...prev, {
-      id: Date.now().toString(),
-      type: 'sent',
-      content: `Sent ${messageType} message: ${content}`,
-      timestamp: new Date()
-    }]);
+    // Listen for status changes
+    const handleStatus = (status: any) => {
+      setDebugData(prev => ({ ...prev, dmsStatus: status }));
+      if (status.connected !== undefined) {
+        setConnectionStatus(status.connected ? 'connected' : 'disconnected');
+      }
+    };
+    
+    dmsApi.on('message', handleMessage);
+    dmsApi.on('activity', handleActivity);
+    dmsApi.on('status', handleStatus);
+    
+    // Load initial activity logs
+    loadActivityLogs();
+    
+    return () => {
+      dmsApi.off('message', handleMessage);
+      dmsApi.off('activity', handleActivity);
+      dmsApi.off('status', handleStatus);
+      dmsApi.disconnectWebSocket();
+    };
+  }, []);
+  
+  const loadActivityLogs = async () => {
+    try {
+      const response = await dmsApi.getActivity(50);
+      if (response.success && response.data) {
+        setLogs(response.data.logs);
+      }
+    } catch (error) {
+      console.error('Failed to load activity logs:', error);
+    }
   };
+  
+  const handleConnectionStatusChange = useCallback((status: 'connected' | 'disconnected' | 'connecting') => {
+    setConnectionStatus(status);
+    
+    if (status === 'connected') {
+      const systemMessage = {
+        id: Date.now().toString(),
+        type: 'system' as const,
+        content: 'Connected to Pega DMS successfully',
+        timestamp: new Date()
+      };
+      setMessages(prev => [...prev, systemMessage]);
+      
+      // Load debug data
+      loadDebugData();
+    } else if (status === 'disconnected') {
+      const systemMessage = {
+        id: Date.now().toString(),
+        type: 'system' as const,
+        content: 'Disconnected from Pega DMS',
+        timestamp: new Date()
+      };
+      setMessages(prev => [...prev, systemMessage]);
+    }
+  }, []);
+  
+  const loadDebugData = async () => {
+    try {
+      const [statusResponse, sessionsResponse] = await Promise.all([
+        dmsApi.getStatus(),
+        dmsApi.getSessions()
+      ]);
+      
+      setDebugData({
+        status: statusResponse.data,
+        sessions: sessionsResponse.data
+      });
+    } catch (error) {
+      console.error('Failed to load debug data:', error);
+    }
+  };
+  
+  const handleAddMessage = useCallback((message: { id: string; type: 'user' | 'csr' | 'system'; content: string; timestamp: Date }) => {
+    setMessages(prev => [...prev, message]);
+  }, []);
 
   const handleClearChat = () => {
     setMessages([]);
@@ -97,37 +142,44 @@ const Index = () => {
     });
   };
 
-  const handleSimulateCSR = () => {
-    const csrMessage = {
-      id: Date.now().toString(),
-      type: 'csr' as const,
-      content: 'Thank you for contacting us. How can I assist you today?',
-      timestamp: new Date()
-    };
+  const handleEndSession = async () => {
+    if (connectionStatus !== 'connected') {
+      toast({
+        title: "Not Connected",
+        description: "Cannot end session - not connected to DMS",
+        variant: "destructive"
+      });
+      return;
+    }
     
-    setTimeout(() => {
-      setMessages(prev => [...prev, csrMessage]);
-      setLogs(prev => [...prev, {
-        id: Date.now().toString(),
-        type: 'received',
-        content: 'Received CSR response: Thank you for contacting us. How can I assist you today?',
-        timestamp: new Date()
-      }]);
-    }, 1000);
-  };
-
-  const handleEndSession = () => {
-    setConnectionStatus('disconnected');
-    setMessages(prev => [...prev, {
-      id: Date.now().toString(),
-      type: 'system',
-      content: 'Chat session ended',
-      timestamp: new Date()
-    }]);
-    toast({
-      title: "Session Ended",
-      description: "Chat session has been terminated",
-    });
+    try {
+      const response = await dmsApi.endSession(config.customerId, 'User requested session end');
+      
+      if (response.success) {
+        setConnectionStatus('disconnected');
+        const systemMessage = {
+          id: Date.now().toString(),
+          type: 'system' as const,
+          content: 'Chat session ended successfully',
+          timestamp: new Date()
+        };
+        setMessages(prev => [...prev, systemMessage]);
+        
+        toast({
+          title: "Session Ended",
+          description: "Chat session has been terminated",
+        });
+      } else {
+        throw new Error(response.error || 'Failed to end session');
+      }
+    } catch (error) {
+      console.error('Failed to end session:', error);
+      toast({
+        title: "End Session Failed",
+        description: error instanceof Error ? error.message : 'Failed to end session',
+        variant: "destructive"
+      });
+    }
   };
 
   return (
@@ -196,9 +248,8 @@ const Index = () => {
                 <ConfigPanel
                   config={config}
                   setConfig={setConfig}
-                  onSaveConfig={handleSaveConfig}
-                  onTestConnection={handleTestConnection}
                   connectionStatus={connectionStatus}
+                  onConnectionStatusChange={handleConnectionStatusChange}
                 />
               </div>
 
@@ -208,9 +259,9 @@ const Index = () => {
                 <ChatSession
                   messages={messages}
                   connectionStatus={connectionStatus}
-                  onSendMessage={handleSendMessage}
+                  customerId={config.customerId}
+                  onAddMessage={handleAddMessage}
                   onClearChat={handleClearChat}
-                  onSimulateCSR={handleSimulateCSR}
                   onEndSession={handleEndSession}
                 />
               </div>
@@ -223,7 +274,7 @@ const Index = () => {
 
             {/* Debug Tools */}
             <div className="mb-8">
-              <DebugTools />
+              <DebugTools debugData={debugData} connectionStatus={connectionStatus} />
             </div>
 
             {/* Version Table */}

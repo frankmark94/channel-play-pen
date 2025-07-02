@@ -1,0 +1,39 @@
+services:
+  # Backend API Service
+  - type: web
+    name: dms-channel-backend
+    runtime: node
+    buildCommand: cd backend/backend && npm install && npm run build
+    startCommand: cd backend/backend && npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: FRONTEND_URL
+        fromService:
+          type: web
+          name: dms-channel-frontend
+          property: host
+      - key: JWT_SECRET
+        sync: false  # Set manually in Render dashboard
+      - key: CHANNEL_ID
+        sync: false  # Set manually in Render dashboard
+      - key: API_URL
+        sync: false  # Set manually in Render dashboard
+      - key: LOG_LEVEL
+        value: info
+    healthCheckPath: /api/health
+    
+  # Frontend Static Site
+  - type: web
+    name: dms-channel-frontend
+    runtime: static
+    buildCommand: npm install && npm run build
+    staticPublishPath: ./dist
+    envVars:
+      - key: VITE_API_BASE_URL
+        fromService:
+          type: web
+          name: dms-channel-backend
+          property: host

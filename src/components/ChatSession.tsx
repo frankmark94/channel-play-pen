@@ -8,6 +8,8 @@ import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import { Send, Trash2, Bot, PhoneOff } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
+import dmsApi, { SendMessageRequest } from '@/lib/api';
 
 interface Message {
   id: string;
@@ -19,27 +21,95 @@ interface Message {
 interface ChatSessionProps {
   messages: Message[];
   connectionStatus: 'connected' | 'disconnected' | 'connecting';
-  onSendMessage: (content: string, messageType: string) => void;
+  customerId: string;
+  onAddMessage: (message: Message) => void;
   onClearChat: () => void;
-  onSimulateCSR: () => void;
   onEndSession: () => void;
 }
 
 export const ChatSession = ({
   messages,
   connectionStatus,
-  onSendMessage,
+  customerId,
+  onAddMessage,
   onClearChat,
-  onSimulateCSR,
   onEndSession
 }: ChatSessionProps) => {
+  const { toast } = useToast();
   const [messageText, setMessageText] = useState('');
   const [messageType, setMessageType] = useState('Text Message');
 
-  const handleSend = () => {
-    if (messageText.trim()) {
-      onSendMessage(messageText, messageType);
-      setMessageText('');
+  const handleSend = async () => {
+    if (!messageText.trim()) return;
+    
+    if (connectionStatus !== 'connected') {
+      toast({
+        title: "Not Connected",
+        description: "Please connect to DMS before sending messages",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (!customerId.trim()) {
+      toast({
+        title: "Customer ID Required",
+        description: "Please set a Customer ID in the configuration",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // Add user message to chat immediately
+    const userMessage: Message = {
+      id: Date.now().toString(),
+      type: 'user',
+      content: messageText,
+      timestamp: new Date()
+    };
+    
+    onAddMessage(userMessage);
+    const messageToSend = messageText;
+    setMessageText('');
+
+    try {
+      const request: SendMessageRequest = {
+        customer_id: customerId,
+        message: messageToSend,
+        message_type: messageType === 'Rich + Content Data' ? 'rich_content' : 'text',
+        metadata: {
+          messageType,
+          timestamp: new Date().toISOString()
+        }
+      };
+
+      const response = await dmsApi.sendMessage(request);
+      
+      if (!response.success) {
+        throw new Error(response.error || 'Failed to send message');
+      }
+
+      toast({
+        title: "Message Sent",
+        description: "Your message has been sent to DMS",
+      });
+
+    } catch (error) {
+      console.error('Failed to send message:', error);
+      toast({
+        title: "Send Failed",
+        description: error instanceof Error ? error.message : 'Failed to send message',
+        variant: "destructive"
+      });
+
+      // Add error message to chat
+      const errorMessage: Message = {
+        id: `error-${Date.now()}`,
+        type: 'system',
+        content: `Failed to send message: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        timestamp: new Date()
+      };
+      onAddMessage(errorMessage);
     }
   };
 
@@ -138,8 +208,8 @@ export const ChatSession = ({
               />
               <Button 
                 onClick={handleSend}
-                disabled={!messageText.trim()}
-                className="bg-blue-600 hover:bg-blue-700 text-white px-6 h-12"
+                disabled={!messageText.trim() || connectionStatus !== 'connected'}
+                className="bg-blue-600 hover:bg-blue-700 text-white px-6 h-12 disabled:opacity-50"
               >
                 <Send className="w-4 h-4 mr-2" />
                 Send
@@ -167,16 +237,7 @@ export const ChatSession = ({
           </div>
 
           {/* Action Buttons */}
-          <div className="grid grid-cols-3 gap-2 pt-2">
-            <Button
-              onClick={onSimulateCSR}
-              variant="outline"
-              size="sm"
-              className="border-purple-200 text-purple-700 hover:bg-purple-50 hover:border-purple-300"
-            >
-              <Bot className="w-4 h-4 mr-1" />
-              Simulate CSR
-            </Button>
+          <div className="grid grid-cols-2 gap-2 pt-2">
             <Button
               onClick={onClearChat}
               variant="outline"
@@ -191,6 +252,7 @@ export const ChatSession = ({
               variant="outline"
               size="sm"
               className="border-orange-200 text-orange-600 hover:bg-orange-50 hover:border-orange-300"
+              disabled={connectionStatus !== 'connected'}
             >
               <PhoneOff className="w-4 h-4 mr-1" />
               End Session
