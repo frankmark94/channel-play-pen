@@ -5,23 +5,23 @@ import { Wrench, ExternalLink } from 'lucide-react';
 
 export const Banner = () => {
   return (
-    <Card className="border-amber-200 bg-gradient-to-r from-amber-50 to-orange-50 shadow-sm">
+    <Card className="border-green-200 bg-gradient-to-r from-green-50 to-emerald-50 shadow-sm">
       <div className="p-4 flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <Wrench className="w-5 h-5 text-amber-600" />
+          <Wrench className="w-5 h-5 text-green-600" />
           <div>
-            <p className="text-sm font-medium text-amber-800">
-              Currently using a test server
+            <p className="text-sm font-medium text-green-800">
+              🎉 Use Your Own Credentials!
             </p>
-            <p className="text-xs text-amber-700">
-              Click here to learn how to host your own
+            <p className="text-xs text-green-700">
+              Enter your Pega DMS credentials in the Configuration panel to test with real data
             </p>
           </div>
         </div>
         <Button 
           variant="outline" 
           size="sm"
-          className="border-amber-200 text-amber-700 hover:bg-amber-100"
+          className="border-green-200 text-green-700 hover:bg-green-100"
         >
           Learn More
           <ExternalLink className="w-3 h-3 ml-2" />

@@ -13,11 +13,12 @@ import {
 import { ApiResponse } from '../types/dms.js';
 import { asyncHandler, CustomError } from '../middleware/errorHandler.js';
 import dmsService from '../services/dmsService.js';
+import credentialManager from '../services/credentialManager.js';
 import logger from '../utils/logger.js';
 
 const router = Router();
 
-// POST /api/connect - Test DMS connection
+// POST /api/connect - Test DMS connection with user credentials
 router.post('/connect', asyncHandler(async (req: Request, res: Response) => {
   const validation = validateRequest<ConnectRequest>(connectSchema, req.body);
   
@@ -33,7 +34,33 @@ router.post('/connect', asyncHandler(async (req: Request, res: Response) => {
 
   const { customer_id, jwt_secret, channel_id, api_url } = validation.data!;
 
+  // Validate credentials format
+  const credValidation = credentialManager.validateCredentials({
+    jwt_secret,
+    channel_id,
+    api_url
+  });
+  
+  if (!credValidation.isValid) {
+    const response: ApiResponse = {
+      success: false,
+      error: 'Invalid credentials',
+      data: { errors: credValidation.errors },
+      timestamp: new Date()
+    };
+    return res.status(400).json(response);
+  }
+
   try {
+    // Store credentials and get session ID
+    const sessionId = credentialManager.storeCredentials({
+      jwt_secret,
+      channel_id,
+      api_url,
+      webhook_url: process.env.WEBHOOK_BASE_URL ? 
+        `${process.env.WEBHOOK_BASE_URL}/dms` : undefined
+    });
+    
     // Disconnect existing connection if any
     await dmsService.disconnect();
     
@@ -54,7 +81,9 @@ router.post('/connect', asyncHandler(async (req: Request, res: Response) => {
         connected: true,
         customer_id,
         channel_id,
-        status
+        session_id: sessionId,
+        status,
+        message: 'Connected successfully with your credentials'
       },
       timestamp: new Date()
     };

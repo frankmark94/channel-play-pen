@@ -19,13 +19,12 @@ git push origin main
    - Connect your GitHub repository
    - Render will automatically detect `render.yaml`
 
-2. **Configure Environment Variables**:
-   Set these in the Render dashboard for `dms-channel-backend`:
-   ```env
-   JWT_SECRET=your_actual_jwt_secret
-   CHANNEL_ID=your_actual_channel_id  
-   API_URL=https://your-pega-instance.com/prweb/api/v1/channels/client
-   ```
+2. **No Environment Variables Required! 🎉**:
+   The app now accepts user credentials through the UI:
+   - No hardcoded DMS credentials needed
+   - Users input their own JWT Secret, Channel ID, and API URL
+   - Perfect for demos where multiple people test with different credentials
+   - More secure - credentials are not stored in environment variables"
 
 #### Option B: Manual Service Creation
 

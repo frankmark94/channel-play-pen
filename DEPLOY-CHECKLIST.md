@@ -16,11 +16,11 @@
 - [ ] Connect GitHub repository
 - [ ] Confirm `render.yaml` detected
 
-### 2. Configure Environment Variables
-Set in `dms-channel-backend` service:
-- [ ] `JWT_SECRET` = your Pega JWT secret
-- [ ] `CHANNEL_ID` = your Pega channel ID
-- [ ] `API_URL` = your Pega DMS endpoint URL
+### 2. No Environment Variables Required! 🎉
+✅ **No DMS credentials needed in environment variables**
+- Users will input their own credentials through the UI
+- The app accepts any valid Pega DMS credentials
+- Perfect for demos and testing with different accounts
 
 ### 3. Deploy Services
 - [ ] Backend service deploys successfully

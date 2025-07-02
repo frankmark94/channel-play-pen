@@ -15,14 +15,12 @@ services:
           type: web
           name: dms-channel-frontend
           property: host
-      - key: JWT_SECRET
-        sync: false  # Set manually in Render dashboard
-      - key: CHANNEL_ID
-        sync: false  # Set manually in Render dashboard
-      - key: API_URL
-        sync: false  # Set manually in Render dashboard
       - key: LOG_LEVEL
         value: info
+      - key: MAX_CONCURRENT_CONNECTIONS
+        value: 100
+      - key: SESSION_TIMEOUT_MINUTES
+        value: 30
     healthCheckPath: /api/health
     
   # Frontend Static Site
