@@ -28,8 +28,11 @@ app.use(helmet({
 }));
 
 // Configure CORS for production and development
-const corsOrigins = process.env.NODE_ENV === 'production' 
-  ? [process.env.FRONTEND_URL, 'https://dms-channel-frontend.onrender.com'].filter(Boolean)
+const corsOrigins: string[] = process.env.NODE_ENV === 'production' 
+  ? [
+      process.env.FRONTEND_URL || 'https://dms-channel-frontend.onrender.com',
+      'https://dms-channel-frontend.onrender.com'
+    ].filter((url): url is string => Boolean(url))
   : ['http://localhost:8080', 'http://localhost:5173'];
 
 app.use(cors({
