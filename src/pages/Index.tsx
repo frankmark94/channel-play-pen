@@ -7,8 +7,11 @@ import { DebugTools } from '@/components/DebugTools';
 import { VersionTable } from '@/components/VersionTable';
 import { Banner } from '@/components/Banner';
 import { SDKViewer } from '@/components/SDKViewer';
+import { ThemeCustomizer } from '@/components/ThemeCustomizer';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
+import { Settings } from 'lucide-react';
 
 const Index = () => {
   const [connectionStatus, setConnectionStatus] = useState<'connected' | 'disconnected' | 'connecting'>('disconnected');
@@ -31,6 +34,7 @@ const Index = () => {
     clientWebhookUrl: 'https://clientchannelexamplev3.onrender.com',
     digitalMessagingUrl: 'https://incoming.artemis-pega.digital/messaging'
   });
+  const [showThemeCustomizer, setShowThemeCustomizer] = useState(false);
   const { toast } = useToast();
 
   const handleSaveConfig = () => {
@@ -127,37 +131,66 @@ const Index = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
-      <div className="container mx-auto p-4 max-w-7xl">
+    <div className="min-h-screen bg-background">
+      <div className="container mx-auto p-6 max-w-7xl">
         {/* Header */}
-        <div className="mb-6">
-          <div className="flex items-center gap-4 mb-4">
-            <img 
-              src="/lovable-uploads/bfc75f5d-b261-4e11-8b55-8116fa6b2e50.png" 
-              alt="Pega API" 
-              className="w-12 h-12"
-            />
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900">
-                Client Channel API Playground
-              </h1>
-              <p className="text-gray-600 mt-1">
-                Test and debug your client channel integrations in real-time
-              </p>
+        <header className="mb-8">
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center gap-4">
+              <img 
+                src="/lovable-uploads/bfc75f5d-b261-4e11-8b55-8116fa6b2e50.png" 
+                alt="Pega API" 
+                className="w-10 h-10"
+              />
+              <div>
+                <h1 className="text-2xl font-semibold text-foreground tracking-tight">
+                  Client Channel API Playground
+                </h1>
+                <p className="text-muted-foreground text-sm mt-1">
+                  Test and debug your client channel integrations in real-time
+                </p>
+              </div>
             </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowThemeCustomizer(!showThemeCustomizer)}
+              className="gap-2"
+              aria-label="Customize theme"
+            >
+              <Settings className="w-4 h-4" />
+              Theme
+            </Button>
           </div>
-        </div>
+
+          {/* Theme Customizer */}
+          {showThemeCustomizer && (
+            <div className="mb-6">
+              <ThemeCustomizer />
+            </div>
+          )}
+        </header>
 
         {/* Tabbed Interface */}
         <Tabs defaultValue="playground" className="w-full">
-          <TabsList className="grid w-full grid-cols-2 mb-6">
-            <TabsTrigger value="playground">API Playground</TabsTrigger>
-            <TabsTrigger value="sdk">SDK Reference</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-2 mb-8 bg-muted/30 p-1 h-12">
+            <TabsTrigger 
+              value="playground" 
+              className="data-[state=active]:bg-background data-[state=active]:shadow-sm font-medium"
+            >
+              API Playground
+            </TabsTrigger>
+            <TabsTrigger 
+              value="sdk"
+              className="data-[state=active]:bg-background data-[state=active]:shadow-sm font-medium"
+            >
+              SDK Reference
+            </TabsTrigger>
           </TabsList>
           
-          <TabsContent value="playground" className="space-y-6">
+          <TabsContent value="playground" className="space-y-8">
             {/* Main Layout */}
-            <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-6">
+            <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-8">
               {/* Left Panel - Configuration */}
               <div className="lg:col-span-1">
                 <ConfigPanel
@@ -170,7 +203,7 @@ const Index = () => {
               </div>
 
               {/* Center Panel - Chat Session */}
-              <div className="lg:col-span-2 space-y-4">
+              <div className="lg:col-span-2 space-y-6">
                 <Banner />
                 <ChatSession
                   messages={messages}
@@ -189,7 +222,7 @@ const Index = () => {
             </div>
 
             {/* Debug Tools */}
-            <div className="mb-6">
+            <div className="mb-8">
               <DebugTools />
             </div>
 
