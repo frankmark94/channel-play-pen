@@ -71,3 +71,9 @@ Yes, you can!
 To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
 
 Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+
+## Client Channel CLI
+
+A lightweight Python tool for testing the Pega Digital Messaging Client Channel API is located in the `dms_chat_cli` folder. After installing the requirements you can start a chat session and send messages directly from your terminal.
+
+See `dms_chat_cli/README.md` for installation and usage instructions.
