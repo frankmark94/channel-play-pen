@@ -20,9 +20,17 @@ const router = Router();
 
 // POST /api/connect - Test DMS connection with user credentials
 router.post('/connect', asyncHandler(async (req: Request, res: Response) => {
+  logger.info('🔌 Connect request received', {
+    body_keys: Object.keys(req.body),
+    customer_id: req.body.customer_id,
+    channel_id: req.body.channel_id,
+    api_url: req.body.api_url
+  });
+
   const validation = validateRequest<ConnectRequest>(connectSchema, req.body);
-  
+
   if (!validation.isValid) {
+    logger.warn('❌ Connect validation failed', { errors: validation.errors });
     const response: ApiResponse = {
       success: false,
       error: 'Validation failed',
@@ -40,8 +48,9 @@ router.post('/connect', asyncHandler(async (req: Request, res: Response) => {
     channel_id,
     api_url
   });
-  
+
   if (!credValidation.isValid) {
+    logger.warn('❌ Credential validation failed', { errors: credValidation.errors });
     const response: ApiResponse = {
       success: false,
       error: 'Invalid credentials',
@@ -57,24 +66,26 @@ router.post('/connect', asyncHandler(async (req: Request, res: Response) => {
       jwt_secret,
       channel_id,
       api_url,
-      webhook_url: process.env.WEBHOOK_BASE_URL ? 
+      webhook_url: process.env.WEBHOOK_BASE_URL ?
         `${process.env.WEBHOOK_BASE_URL}/dms` : undefined
     });
-    
+
+    logger.debug('📝 Credentials stored', { session_id: sessionId });
+
     // Disconnect existing connection if any
     await dmsService.disconnect();
-    
+
     // Connect with new configuration
     await dmsService.connect({
       jwt_secret,
       channel_id,
       api_url,
-      webhook_url: process.env.WEBHOOK_BASE_URL ? 
+      webhook_url: process.env.WEBHOOK_BASE_URL ?
         `${process.env.WEBHOOK_BASE_URL}/dms` : undefined
     });
 
     const status = dmsService.getConnectionStatus();
-    
+
     const response: ApiResponse = {
       success: true,
       data: {
@@ -88,11 +99,16 @@ router.post('/connect', asyncHandler(async (req: Request, res: Response) => {
       timestamp: new Date()
     };
 
-    logger.info('DMS connection established', { customer_id, channel_id });
+    logger.info('✅ DMS connection established', { customer_id, channel_id, session_id: sessionId });
     res.json(response);
-    
+
   } catch (error) {
-    logger.error('Failed to connect to DMS', error);
+    logger.error('❌ Failed to connect to DMS', {
+      error: error instanceof Error ? error.message : 'Unknown error',
+      stack: error instanceof Error ? error.stack : undefined,
+      customer_id,
+      channel_id
+    });
     throw new CustomError(
       error instanceof Error ? error.message : 'Failed to connect to DMS',
       500
@@ -102,9 +118,16 @@ router.post('/connect', asyncHandler(async (req: Request, res: Response) => {
 
 // POST /api/send-message - Send messages to DMS
 router.post('/send-message', asyncHandler(async (req: Request, res: Response) => {
+  logger.info('💬 Send message request received', {
+    customer_id: req.body.customer_id,
+    message_type: req.body.message_type,
+    message_preview: req.body.message?.substring(0, 50)
+  });
+
   const validation = validateRequest<SendMessageRequest>(sendMessageSchema, req.body);
-  
+
   if (!validation.isValid) {
+    logger.warn('❌ Send message validation failed', { errors: validation.errors });
     const response: ApiResponse = {
       success: false,
       error: 'Validation failed',
@@ -117,16 +140,22 @@ router.post('/send-message', asyncHandler(async (req: Request, res: Response) =>
   const { customer_id, message, message_type, metadata } = validation.data!;
 
   try {
+    const startTime = Date.now();
+
     if (message_type === 'rich_content') {
+      logger.debug('📦 Sending rich content message', { customer_id, metadata });
       // Send rich content message
       await dmsService.sendMessage(customer_id, {
         message,
         metadata
       });
     } else {
+      logger.debug('📝 Sending text message', { customer_id, message_length: message.length });
       // Send simple text message
       await dmsService.sendTextMessage(customer_id, message);
     }
+
+    const duration = Date.now() - startTime;
 
     const response: ApiResponse = {
       success: true,
@@ -139,11 +168,16 @@ router.post('/send-message', asyncHandler(async (req: Request, res: Response) =>
       timestamp: new Date()
     };
 
-    logger.info('Message sent to DMS', { customer_id, message_type });
+    logger.info('✅ Message sent to DMS', { customer_id, message_type, duration_ms: duration });
     res.json(response);
-    
+
   } catch (error) {
-    logger.error('Failed to send message', error);
+    logger.error('❌ Failed to send message', {
+      error: error instanceof Error ? error.message : 'Unknown error',
+      stack: error instanceof Error ? error.stack : undefined,
+      customer_id,
+      message_type
+    });
     throw new CustomError(
       error instanceof Error ? error.message : 'Failed to send message',
       500
