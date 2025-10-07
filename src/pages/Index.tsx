@@ -23,17 +23,41 @@ const Index = () => {
     timestamp: Date;
   }>>([]);
   const [logs, setLogs] = useState<ActivityLog[]>([]);
-  const [config, setConfig] = useState({
-    customerId: 'test-customer-123',
-    channelId: '',
-    jwtSecret: '',
-    clientWebhookUrl: 'http://localhost:3001/dms',
-    digitalMessagingUrl: 'https://your-pega-instance.com/prweb/api/v1/channels/client'
-  });
-  
+
+  // Load saved config from localStorage or use defaults
+  const getInitialConfig = () => {
+    const saved = localStorage.getItem('dmsConfig');
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch (e) {
+        console.error('Failed to parse saved config:', e);
+      }
+    }
+
+    // Auto-detect webhook URL based on backend URL
+    const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001';
+    const webhookUrl = `${apiBaseUrl}/dms`;
+
+    return {
+      customerId: 'test-customer-123',
+      channelId: '',
+      jwtSecret: '',
+      clientWebhookUrl: webhookUrl,
+      digitalMessagingUrl: 'https://your-pega-instance.com/prweb/api/v1/channels/client'
+    };
+  };
+
+  const [config, setConfig] = useState(getInitialConfig());
+
   const [debugData, setDebugData] = useState<any>({});
   const [showThemeCustomizer, setShowThemeCustomizer] = useState(false);
   const { toast } = useToast();
+
+  // Save config to localStorage whenever it changes
+  useEffect(() => {
+    localStorage.setItem('dmsConfig', JSON.stringify(config));
+  }, [config]);
 
   // Set up WebSocket connection and event listeners
   useEffect(() => {

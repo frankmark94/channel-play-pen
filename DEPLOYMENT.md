@@ -27,12 +27,25 @@ git push origin main
    - ✅ One deployment serves everyone - no need to redeploy for each user
    - ✅ More secure - credentials are session-based, not stored in env vars
 
-3. **Required Environment Variables** (Only server config, no DMS creds):
-   - `FRONTEND_URL` - Auto-set by Render (your frontend URL)
-   - `WEBHOOK_BASE_URL` - Auto-set by Render (your backend URL)
+3. **⚙️ REQUIRED: Set Environment Variables in Render Dashboard**
+
+   **After deployment completes**, you MUST manually set these variables:
+
+   **Backend Service** (`dms-channel-backend`):
+   - `FRONTEND_URL` = `https://dms-channel-frontend.onrender.com` (your actual frontend URL)
+   - `WEBHOOK_BASE_URL` = `https://dms-channel-backend.onrender.com` (your actual backend URL)
+
+   **Frontend Service** (`dms-channel-frontend`):
+   - `VITE_API_BASE_URL` = `https://dms-channel-backend.onrender.com` (your actual backend URL)
+
+   **📖 See [RENDER-SETUP.md](./RENDER-SETUP.md) for detailed step-by-step instructions!**
+
+4. **Other Auto-Set Variables**:
    - `NODE_ENV=production`
    - `PORT=10000`
    - `LOG_LEVEL=info`
+   - `MAX_CONCURRENT_CONNECTIONS=100`
+   - `SESSION_TIMEOUT_MINUTES=30`
 
 #### Option B: Manual Service Creation
 

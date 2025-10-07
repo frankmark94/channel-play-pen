@@ -11,10 +11,9 @@ services:
       - key: PORT
         value: 10000
       - key: FRONTEND_URL
-        fromService:
-          type: web
-          name: dms-channel-frontend
-          property: host
+        sync: false
+      - key: WEBHOOK_BASE_URL
+        sync: false
       - key: LOG_LEVEL
         value: info
       - key: MAX_CONCURRENT_CONNECTIONS
@@ -31,7 +30,4 @@ services:
     staticPublishPath: ./dist
     envVars:
       - key: VITE_API_BASE_URL
-        fromService:
-          type: web
-          name: dms-channel-backend
-          property: host
+        sync: false
