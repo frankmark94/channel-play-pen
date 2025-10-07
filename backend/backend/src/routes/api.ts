@@ -1,19 +1,19 @@
 import { Router, Request, Response } from 'express';
-import { 
-  connectSchema, 
-  sendMessageSchema, 
-  endSessionSchema, 
-  validateRequest 
+import {
+  connectSchema,
+  sendMessageSchema,
+  endSessionSchema,
+  validateRequest
 } from '../utils/validation.js';
-import { 
-  ConnectRequest, 
-  SendMessageRequest, 
-  EndSessionRequest 
+import {
+  ConnectRequest,
+  SendMessageRequest,
+  EndSessionRequest
 } from '../types/api.js';
 import { ApiResponse } from '../types/dms.js';
 import { asyncHandler, CustomError } from '../middleware/errorHandler.js';
 import dmsService from '../services/dmsService.js';
-import credentialManager from '../services/credentialManager.js';
+import credentialManager, { CredentialManager } from '../services/credentialManager.js';
 import logger from '../utils/logger.js';
 
 const router = Router();
@@ -35,7 +35,7 @@ router.post('/connect', asyncHandler(async (req: Request, res: Response) => {
   const { customer_id, jwt_secret, channel_id, api_url } = validation.data!;
 
   // Validate credentials format
-  const credValidation = credentialManager.validateCredentials({
+  const credValidation = CredentialManager.validateCredentials({
     jwt_secret,
     channel_id,
     api_url

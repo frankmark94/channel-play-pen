@@ -4,31 +4,41 @@ Backend server for the Pega DMS Client Channel API Playground.
 
 ## Features
 
+- **🔐 Dynamic Credentials**: No hardcoded DMS credentials - accepts them from frontend
 - Express.js server with TypeScript
 - Real-time WebSocket communication
 - Integration with Pega DMS Client Channel
 - Comprehensive error handling and logging
 - RESTful API endpoints
 - Webhook support for DMS messages
+- Session-based credential management
 
 ## Setup
 
 1. **Install dependencies:**
    ```bash
+   cd backend/backend
    npm install
    ```
 
 2. **Environment Configuration:**
-   Copy `.env.example` to `.env` and update with your Pega DMS credentials:
+   Copy `.env.example` to `.env`:
    ```bash
+   cd backend
    cp .env.example .env
    ```
 
-3. **Update environment variables:**
+3. **Update server configuration** (NO DMS credentials needed):
    ```env
-   JWT_SECRET=your_jwt_secret_here
-   CHANNEL_ID=your_channel_id_here
-   API_URL=https://your-pega-instance.com/prweb/api/v1/channels/client
+   # Server settings
+   PORT=3001
+   NODE_ENV=development
+   FRONTEND_URL=http://localhost:8080
+   WEBHOOK_BASE_URL=http://localhost:3001
+   LOG_LEVEL=debug
+
+   # ⚠️ NOTE: Do NOT set JWT_SECRET, CHANNEL_ID, or API_URL here!
+   # These are provided dynamically by users through the frontend UI
    ```
 
 ## Development
@@ -77,16 +87,25 @@ The server broadcasts real-time events via WebSocket:
 
 ## Environment Variables
 
+### Server Configuration (Set in .env)
 | Variable | Description | Default |
 |----------|-------------|---------|
-| `JWT_SECRET` | Pega DMS JWT Secret | - |
-| `CHANNEL_ID` | Pega DMS Channel ID | - |
-| `API_URL` | Pega DMS API URL | - |
 | `PORT` | Server port | 3001 |
 | `NODE_ENV` | Environment mode | development |
 | `FRONTEND_URL` | Frontend URL for CORS | http://localhost:8080 |
-| `WEBHOOK_BASE_URL` | Public URL for webhooks | - |
+| `WEBHOOK_BASE_URL` | Public URL for webhooks | http://localhost:3001 |
 | `LOG_LEVEL` | Logging level | debug |
+
+### DMS Credentials (Provided by users via UI)
+⚠️ **These are NOT set in environment variables anymore!**
+
+Users provide these through the frontend configuration panel:
+- `customer_id` - Customer identifier
+- `jwt_secret` - Pega DMS JWT Secret
+- `channel_id` - Pega DMS Channel ID
+- `api_url` - Pega DMS API URL
+
+The backend receives these dynamically via the `/api/connect` endpoint.
 
 ## Public URL Setup (for webhooks)
 

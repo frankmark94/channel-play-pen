@@ -123,3 +123,4 @@ class CredentialManager {
 
 export const credentialManager = new CredentialManager();
 export default credentialManager;
+export { CredentialManager };

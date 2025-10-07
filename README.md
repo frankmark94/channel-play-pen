@@ -1,73 +1,168 @@
-# Welcome to your Lovable project
+# 🚀 Client Channel API Playground
 
-## Project info
+A developer-friendly tool for testing and debugging client channel integrations with **Pega's Digital Messaging System (DMS)**.
 
-**URL**: https://lovable.dev/projects/02b7e608-3033-4aa9-b4bb-7379778e1411
+## ✨ Key Features
 
-## How can I edit this code?
+- **🔐 No Hardcoded Credentials**: Users provide their own DMS credentials through the UI
+- **🌐 Single Deployment, Multiple Users**: One hosted instance serves everyone
+- **📊 Real-time Testing**: Interactive chat simulation with live API monitoring
+- **🎨 Beautiful UI**: Modern interface built with React + shadcn/ui
+- **📡 WebSocket Support**: Real-time message updates from DMS
+- **🔍 Debug Tools**: Activity logs, session tracking, and API inspection
 
-There are several ways of editing your application.
+## 🏃‍♂️ Quick Start
 
-**Use Lovable**
+### Option 1: Use the Hosted Version (Recommended)
+Simply visit the deployed app and enter your Pega DMS credentials in the configuration panel:
+- Customer ID
+- Channel ID
+- JWT Secret
+- Digital Messaging URL
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/02b7e608-3033-4aa9-b4bb-7379778e1411) and start prompting.
+No deployment needed! Perfect for demos and testing.
 
-Changes made via Lovable will be committed automatically to this repo.
+### Option 2: Run Locally
 
-**Use your preferred IDE**
-
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
-
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
-
-Follow these steps:
-
-```sh
-# Step 1: Clone the repository using the project's Git URL.
+1. **Clone the repository**
+```bash
 git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
 cd <YOUR_PROJECT_NAME>
+```
 
-# Step 3: Install the necessary dependencies.
-npm i
+2. **Install dependencies**
+```bash
+# Frontend
+npm install
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
+# Backend
+cd backend/backend
+npm install
+cd ../..
+```
+
+3. **Configure environment**
+```bash
+# Copy example env file
+cp backend/.env.example backend/.env
+
+# Edit backend/.env and set:
+# - FRONTEND_URL (default: http://localhost:8080)
+# - WEBHOOK_BASE_URL (your ngrok URL or localhost)
+# - PORT, LOG_LEVEL, etc.
+#
+# NOTE: No need to set JWT_SECRET, CHANNEL_ID, or API_URL
+# These come from the frontend UI!
+```
+
+4. **Start the application**
+```bash
+# Terminal 1: Start backend
+cd backend/backend
+npm run dev
+
+# Terminal 2: Start frontend
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+5. **Open your browser**
+- Frontend: http://localhost:8080
+- Backend API: http://localhost:3001
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+## 🎯 How It Works
 
-**Use GitHub Codespaces**
+### User Flow
+1. User opens the web app
+2. Enters their Pega DMS credentials in the Configuration Panel
+3. Clicks "Connect to DMS"
+4. Backend uses those credentials to establish connection
+5. User can now send/receive messages through the Client Channel API
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+### Architecture
+- **Frontend**: React + TypeScript + Vite (shadcn/ui components)
+- **Backend**: Node.js + Express + WebSocket
+- **DMS Integration**: `dms-client-channel` package (or mock for testing)
 
-## What technologies are used for this project?
+## 📁 Project Structure
 
-This project is built with:
+```
+├── src/                    # Frontend React app
+│   ├── components/        # UI components (ConfigPanel, ChatSession, etc.)
+│   ├── lib/              # API client and utilities
+│   └── pages/            # Application pages
+├── backend/
+│   └── backend/          # Backend Express server
+│       ├── src/
+│       │   ├── routes/   # API endpoints
+│       │   ├── services/ # DMS service, websocket, credentials
+│       │   └── types/    # TypeScript types
+│       └── .env          # Backend config (NO DMS credentials!)
+├── public/               # Static assets
+└── render.yaml          # Render.com deployment config
+```
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+## 🔧 Configuration
 
-## How can I deploy this project?
+### Backend Environment Variables
+```env
+# Server Settings
+PORT=3001
+NODE_ENV=development
+LOG_LEVEL=debug
 
-Simply open [Lovable](https://lovable.dev/projects/02b7e608-3033-4aa9-b4bb-7379778e1411) and click on Share -> Publish.
+# CORS & URLs
+FRONTEND_URL=http://localhost:8080
+WEBHOOK_BASE_URL=http://localhost:3001
 
-## Can I connect a custom domain to my Lovable project?
+# ⚠️ DO NOT set these - they come from the UI:
+# JWT_SECRET, CHANNEL_ID, API_URL, CUSTOMER_ID
+```
 
-Yes, you can!
+### Frontend Environment Variables
+```env
+VITE_API_BASE_URL=http://localhost:3001
+```
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+## 🌐 Deployment
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+See [DEPLOYMENT.md](./DEPLOYMENT.md) for detailed deployment instructions.
+
+**Quick Deploy to Render.com:**
+1. Push to GitHub
+2. Connect repo to Render
+3. Render auto-detects `render.yaml`
+4. Deploy! 🎉
+
+**No DMS credentials needed in environment variables!**
+
+## 🛠️ Technologies
+
+- **Frontend**: React 18, TypeScript, Vite, shadcn/ui, Tailwind CSS
+- **Backend**: Node.js, Express, WebSocket, TypeScript
+- **DMS Integration**: dms-client-channel NPM package
+- **Deployment**: Render.com (or any Node.js host)
+
+## 📚 Documentation
+
+- [CLAUDE.md](./CLAUDE.md) - Development guide for Claude Code
+- [DEPLOYMENT.md](./DEPLOYMENT.md) - Deployment instructions
+- [README-INTEGRATION.md](./README-INTEGRATION.md) - DMS integration details
+- [SECURITY.md](./SECURITY.md) - Security best practices
+
+## 🤝 Contributing
+
+This project was built with [Lovable](https://lovable.dev). Changes can be made:
+1. Via Lovable interface (auto-commits to repo)
+2. Via your IDE (push changes normally)
+3. Via GitHub directly (edit files in browser)
+
+## 📄 License
+
+See repository for license details.
+
+## 🆘 Support
+
+For issues or questions:
+1. Check the docs in this repo
+2. Review the [DEPLOYMENT.md](./DEPLOYMENT.md) troubleshooting section
+3. Open an issue on GitHub

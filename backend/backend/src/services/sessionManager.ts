@@ -3,7 +3,10 @@ import { v4 as uuidv4 } from 'uuid';
 import crypto from 'crypto';
 import logger from '../utils/logger.js';
 import { DMSConfig, SessionInfo } from '../types/dms.js';
+import dmsService from './dmsService.js';
+
 // We'll create individual DMS service instances per session
+type DMSService = typeof dmsService;
 
 interface UserSession {
   sessionId: string;
@@ -37,10 +40,11 @@ class SessionManager extends EventEmitter {
       configHash
     });
 
-    const dmsService = new DMSService();
-    
+    // For now, we'll use the singleton dmsService
+    // In a multi-tenant production system, you'd create separate instances
+
     // Forward DMS events to the session manager
-    dmsService.on('connected', (data) => {
+    dmsService.on('connected', (data: any) => {
       const session = this.sessions.get(sessionId);
       if (session) {
         session.isConnected = true;
@@ -57,12 +61,12 @@ class SessionManager extends EventEmitter {
       this.emit('sessionDisconnected', { sessionId });
     });
 
-    dmsService.on('message', (message) => {
+    dmsService.on('message', (message: any) => {
       this.updateActivity(sessionId);
       this.emit('sessionMessage', { sessionId, message });
     });
 
-    dmsService.on('activity', (activity) => {
+    dmsService.on('activity', (activity: any) => {
       this.updateActivity(sessionId);
       this.emit('sessionActivity', { sessionId, activity });
     });

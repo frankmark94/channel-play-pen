@@ -19,12 +19,20 @@ git push origin main
    - Connect your GitHub repository
    - Render will automatically detect `render.yaml`
 
-2. **No Environment Variables Required! 🎉**:
-   The app now accepts user credentials through the UI:
-   - No hardcoded DMS credentials needed
-   - Users input their own JWT Secret, Channel ID, and API URL
-   - Perfect for demos where multiple people test with different credentials
-   - More secure - credentials are not stored in environment variables"
+2. **✨ No DMS Credentials Required! 🎉**:
+   The app now accepts user credentials dynamically through the UI:
+   - ✅ No hardcoded DMS credentials in environment variables
+   - ✅ Users input their own JWT Secret, Channel ID, Customer ID, and API URL
+   - ✅ Perfect for demos where multiple users test with different credentials
+   - ✅ One deployment serves everyone - no need to redeploy for each user
+   - ✅ More secure - credentials are session-based, not stored in env vars
+
+3. **Required Environment Variables** (Only server config, no DMS creds):
+   - `FRONTEND_URL` - Auto-set by Render (your frontend URL)
+   - `WEBHOOK_BASE_URL` - Auto-set by Render (your backend URL)
+   - `NODE_ENV=production`
+   - `PORT=10000`
+   - `LOG_LEVEL=info`
 
 #### Option B: Manual Service Creation
 
@@ -65,23 +73,30 @@ git push origin main
 
 ### Backend (.env.production)
 ```env
-# Required - Set in Render Dashboard
-JWT_SECRET=your_production_jwt_secret_here
-CHANNEL_ID=your_production_channel_id_here
-API_URL=https://your-pega-production-instance.com/prweb/api/v1/channels/client
-
-# Auto-configured by Render
+# Server Configuration (Required - Set in Render Dashboard)
 NODE_ENV=production
 PORT=10000
+LOG_LEVEL=info
+
+# Auto-configured by Render (via render.yaml)
 FRONTEND_URL=https://your-frontend-service.onrender.com
 WEBHOOK_BASE_URL=https://your-backend-service.onrender.com
 
-# Optional
-LOG_LEVEL=info
+# Optional Performance Settings
+MAX_CONCURRENT_CONNECTIONS=100
+SESSION_TIMEOUT_MINUTES=30
+
+# ⚠️ DMS CREDENTIALS NO LONGER NEEDED HERE!
+# Users provide these through the UI configuration panel:
+# - JWT_SECRET (entered by user in UI)
+# - CHANNEL_ID (entered by user in UI)
+# - API_URL (entered by user in UI)
+# - CUSTOMER_ID (entered by user in UI)
 ```
 
 ### Frontend (.env.production)
 ```env
+# Backend API URL (auto-configured by Render via render.yaml)
 VITE_API_BASE_URL=https://your-backend-service.onrender.com
 ```
 
@@ -103,10 +118,11 @@ VITE_API_BASE_URL=https://your-backend-service.onrender.com
 ## Production Considerations
 
 ### Security
-- [ ] Set strong JWT secrets
-- [ ] Use HTTPS URLs only
-- [ ] Configure proper CORS origins
-- [ ] Remove debug logs in production
+- [x] **No hardcoded secrets** - Credentials provided by users at runtime
+- [ ] Users should use strong JWT secrets (validated in UI)
+- [ ] Use HTTPS URLs only (enforced in production)
+- [ ] Configure proper CORS origins (set via FRONTEND_URL)
+- [ ] Remove debug logs in production (LOG_LEVEL=info)
 
 ### Performance
 - [ ] Enable gzip compression (handled by Render)
@@ -144,9 +160,11 @@ VITE_API_BASE_URL=https://your-backend-service.onrender.com
 - Ensure environment variables are properly set
 
 **4. DMS Connection Issues**
-- Verify Pega instance is accessible from Render
-- Check JWT token and Channel ID
-- Ensure webhook URL is publicly accessible
+- Verify Pega instance is accessible from Render (test from browser)
+- Ensure users enter correct JWT Secret, Channel ID, and API URL in UI
+- Check that webhook URL (WEBHOOK_BASE_URL) is publicly accessible
+- Verify Customer ID format is correct
+- Test connection using the "Connect to DMS" button in the UI
 
 ### Debug Commands
 
